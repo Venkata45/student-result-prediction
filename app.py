@@ -4,6 +4,7 @@ import time
 import uuid
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 import pandas as pd
@@ -157,3 +158,15 @@ def predict(student: Student):
     except Exception:
         logger.exception("event=prediction_failed")
         raise HTTPException(status_code=500, detail="Prediction failed")
+
+# Demonstration Endpoints for Swagger UI (404 and 302)
+@app.get("/error/404", summary="Simulate 404 Not Found Error", tags=["Status Code Demonstrations"])
+def simulate_404():
+    """Explicitly triggers an HTTP 404 Not Found error inside FastAPI."""
+    raise HTTPException(status_code=404, detail="Resource not found (Simulated 404 for Lab Demonstration)")
+
+@app.get("/redirect/302", summary="Simulate 302 Redirection", tags=["Status Code Demonstrations"])
+def simulate_302():
+    """Explicitly triggers an HTTP 302 Found redirect to /docs."""
+    return RedirectResponse(url="/docs", status_code=302)
+

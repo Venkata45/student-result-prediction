@@ -25,3 +25,14 @@ def test_missing_route_404():
     res = client.get("/not-a-real-route")
     assert res.status_code == 404
     assert "X-Request-ID" in res.headers
+
+def test_explicit_404_endpoint():
+    res = client.get("/error/404")
+    assert res.status_code == 404
+    assert res.json()["detail"] == "Resource not found (Simulated 404 for Lab Demonstration)"
+
+def test_explicit_302_redirect_endpoint():
+    res = client.get("/redirect/302", follow_redirects=False)
+    assert res.status_code == 302
+    assert res.headers["location"] == "/docs"
+
