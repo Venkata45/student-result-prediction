@@ -26,7 +26,7 @@ class Student(BaseModel):
 def root():
     return {
         "message": "Student Result Prediction API is running",
-        "version": "1.0.0"
+        "version": "1.0.1"
     }
 
 
