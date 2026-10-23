@@ -1,0 +1,101 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "student-result-monitoring",
+    "title": "Student Result Prediction - API Monitoring",
+    "tags": ["mlops", "practical-12", "fastapi"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+        "type": "stat",
+        "title": "Model Loaded",
+        "datasource": { "type": "prometheus", "uid": "dg223wbegao00b" },
+        "targets": [
+          { "expr": "student_api_model_loaded", "refId": "A" }
+        ],
+        "options": {
+          "colorMode": "background",
+          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" }
+        }
+      },
+      {
+        "id": 2,
+        "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+        "type": "stat",
+        "title": "Total API Requests",
+        "datasource": { "type": "prometheus", "uid": "dg223wbegao00b" },
+        "targets": [
+          { "expr": "sum(student_api_http_requests_total)", "refId": "A" }
+        ],
+        "options": {
+          "colorMode": "value",
+          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" }
+        }
+      },
+      {
+        "id": 3,
+        "gridPos": { "h": 6, "w": 6, "x": 12, "y": 0 },
+        "type": "stat",
+        "title": "Successful Predictions",
+        "datasource": { "type": "prometheus", "uid": "dg223wbegao00b" },
+        "targets": [
+          { "expr": "sum(student_api_predictions_total{result=\"success\"})", "refId": "A" }
+        ],
+        "options": {
+          "colorMode": "value",
+          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" }
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": { "h": 6, "w": 6, "x": 18, "y": 0 },
+        "type": "stat",
+        "title": "Target Up",
+        "datasource": { "type": "prometheus", "uid": "dg223wbegao00b" },
+        "targets": [
+          { "expr": "up{job=\"student-result-api\"}", "refId": "A" }
+        ],
+        "options": {
+          "colorMode": "background",
+          "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" }
+        }
+      },
+      {
+        "id": 5,
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 6 },
+        "type": "timeseries",
+        "title": "Requests per Second (RPS)",
+        "datasource": { "type": "prometheus", "uid": "dg223wbegao00b" },
+        "targets": [
+          { "expr": "sum(rate(student_api_http_requests_total[1m]))", "refId": "A" }
+        ]
+      },
+      {
+        "id": 6,
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 6 },
+        "type": "timeseries",
+        "title": "Client / Server Error Rate (4xx / 5xx)",
+        "datasource": { "type": "prometheus", "uid": "dg223wbegao00b" },
+        "targets": [
+          { "expr": "sum(rate(student_api_http_requests_total{status=~\"4..|5..\"}[5m]))", "refId": "A" }
+        ]
+      },
+      {
+        "id": 7,
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
+        "type": "timeseries",
+        "title": "P95 Request Latency",
+        "datasource": { "type": "prometheus", "uid": "dg223wbegao00b" },
+        "targets": [
+          { "expr": "histogram_quantile(0.95, sum by (le) (rate(student_api_http_request_duration_seconds_bucket[5m])))", "refId": "A" }
+        ]
+      }
+    ]
+  },
+  "overwrite": true
+}
