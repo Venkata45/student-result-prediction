@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - practical-11-logging
+      - practical-12-monitoring
   workflow_dispatch:
 
 permissions:
@@ -63,6 +64,7 @@ jobs:
           docker tag student-result-prediction:ci "${IMAGE_NAME}:latest"
           docker tag student-result-prediction:ci "${IMAGE_NAME}:sha-${GITHUB_SHA}"
           docker tag student-result-prediction:ci "${IMAGE_NAME}:practical-11"
+          docker tag student-result-prediction:ci "${IMAGE_NAME}:practical-12"
 
       - name: Push Docker images
         if: success()
@@ -70,3 +72,4 @@ jobs:
           docker push "${IMAGE_NAME}:latest"
           docker push "${IMAGE_NAME}:sha-${GITHUB_SHA}"
           docker push "${IMAGE_NAME}:practical-11"
+          docker push "${IMAGE_NAME}:practical-12"
