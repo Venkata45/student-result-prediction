@@ -82,6 +82,9 @@ jobs:
     needs: build-test-push
     runs-on: self-hosted
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Verify Kubernetes cluster
         run: |
           kubectl config current-context
