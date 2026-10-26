@@ -63,8 +63,8 @@ except Exception:
 # FastAPI application instance
 app = FastAPI(
     title="Student Result Prediction API",
-    description="MLOps Practical-12: Prometheus Metrics and Monitoring API",
-    version="1.2.0",
+    description="MLOps Practical-14: Automate Kubernetes Deployment using GitHub Actions",
+    version="1.4.0",
 )
 
 # Step 7 - Extend Request/Response Middleware with Prometheus Metrics
@@ -163,8 +163,8 @@ SAFE_INPUT_FIELDS = {"cgpa", "placement_exam_marks"}
 def root():
     return {
         "message": "Student Result Prediction API is running",
-        "version": "1.2.0",
-        "practical": "Practical-12: Monitoring with Prometheus and Grafana",
+        "version": "1.4.0",
+        "practical": "Practical-14: Automate Kubernetes Deployment using GitHub Actions",
     }
 
 @app.get("/health")
