@@ -93,6 +93,11 @@ jobs:
             -o jsonpath="{.spec.template.spec.containers[0].image}"
           echo ""
 
+      - name: Ensure image is available in Minikube
+        run: |
+          docker build -t ${{ needs.build-test-push.outputs.image_ref }} .
+          minikube image load ${{ needs.build-test-push.outputs.image_ref }} --overwrite
+
       - name: Deploy the tested image
         run: |
           kubectl set image deployment/student-result-prediction \
