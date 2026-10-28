@@ -113,8 +113,15 @@ jobs:
 
       - name: Verify health through the Kubernetes Service
         run: |
-          kubectl exec deployment/student-result-prediction -- \
-            python -c "import urllib.request; print(urllib.request.urlopen('http://student-result-prediction-service/health', timeout=10).read().decode())"
+          for i in {1..15}; do
+            if kubectl exec deployment/student-result-prediction -- python -c "import urllib.request; print(urllib.request.urlopen('http://student-result-prediction-service/health', timeout=10).read().decode())"; then
+              echo "Service health verification passed"
+              exit 0
+            fi
+            echo "Waiting for service endpoints to stabilize..."
+            sleep 3
+          done
+          exit 1
 
       - name: Show deployed image and Pods
         run: |
