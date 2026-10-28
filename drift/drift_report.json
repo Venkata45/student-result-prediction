@@ -1,0 +1,42 @@
+{
+  "method": "two-sample KS test",
+  "p_value_threshold": 0.05,
+  "min_drifted_features": 2,
+  "drifted_feature_count": 3,
+  "drifted_features": [
+    "attendance",
+    "internal_marks",
+    "assignment_marks"
+  ],
+  "overall_drift": true,
+  "features": {
+    "attendance": {
+      "ks_statistic": 0.422,
+      "p_value": 0.0,
+      "drift_detected": true,
+      "reference_mean": 78.835,
+      "current_mean": 65.0447
+    },
+    "internal_marks": {
+      "ks_statistic": 0.344,
+      "p_value": 0.0,
+      "drift_detected": true,
+      "reference_mean": 34.9582,
+      "current_mean": 26.0344
+    },
+    "assignment_marks": {
+      "ks_statistic": 0.304,
+      "p_value": 0.0,
+      "drift_detected": true,
+      "reference_mean": 35.138,
+      "current_mean": 27.1917
+    },
+    "previous_score": {
+      "ks_statistic": 0.146,
+      "p_value": 0.053447,
+      "drift_detected": false,
+      "reference_mean": 70.6206,
+      "current_mean": 66.6605
+    }
+  }
+}
