@@ -10,14 +10,12 @@ CURRENT = DRIFT_DIR / "current_data.csv"
 REPORT = DRIFT_DIR / "drift_report.json"
 
 FEATURES = [
-    "attendance",
-    "internal_marks",
-    "assignment_marks",
-    "previous_score",
+    "cgpa",
+    "placement_exam_marks",
 ]
 
 P_VALUE_THRESHOLD = 0.05
-MIN_DRIFTED_FEATURES = 2
+MIN_DRIFTED_FEATURES = 1
 
 reference = pd.read_csv(REFERENCE)
 current = pd.read_csv(CURRENT)
@@ -53,6 +51,7 @@ overall_drift = (
 )
 
 report = {
+    "dataset": "placement_data.csv",
     "method": "two-sample KS test",
     "p_value_threshold": P_VALUE_THRESHOLD,
     "min_drifted_features": MIN_DRIFTED_FEATURES,

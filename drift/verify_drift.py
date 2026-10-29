@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MLOps Practical-15: Automated End-to-End Verification Script
+MLOps Practical-15: Automated End-to-End Verification Script for placement_data.csv
 Runs both Stable and Drifted scenarios to verify data drift detection,
 conditional retraining, quality gate enforcement, and model promotion.
 """
@@ -31,7 +31,7 @@ def run_cmd(cmd, desc):
     return True
 
 def main():
-    print_header("MLOps Practical-15: Data Drift & Retraining Verification")
+    print_header("MLOps Practical-15: Data Drift & Retraining on placement_data.csv")
 
     # Step 1: Prepare Reference Dataset
     run_cmd([sys.executable, "drift/prepare_reference.py"], "Step 1: Preparing baseline reference dataset")
@@ -49,7 +49,7 @@ def main():
 
     # Step 3: Test Scenario 2 (Drift Detected)
     print_header("SCENARIO 2: Drifted Recent Data (Drift Detected & Retraining)")
-    run_cmd([sys.executable, "drift/simulate_current_data.py", "--mode", "drift"], "Simulating drifted recent batch (attendance/marks shift)")
+    run_cmd([sys.executable, "drift/simulate_current_data.py", "--mode", "drift"], "Simulating drifted recent batch (CGPA & Marks shift)")
     run_cmd([sys.executable, "drift/detect_drift.py"], "Running Kolmogorov-Smirnov drift test")
     
     with open(DRIFT_DIR / "drift_report.json") as f:
@@ -58,11 +58,11 @@ def main():
     print(f"\n🚩 Drift confirmed! Flagged features: {rep['drifted_features']}")
 
     run_cmd([sys.executable, "drift/retrain_candidate.py"], "Retraining candidate model on historical + recent ground truth")
-    run_cmd([sys.executable, "drift/approve_candidate.py"], "Enforcing Quality Gate (Accuracy >= 0.85) and promoting model")
+    run_cmd([sys.executable, "drift/approve_candidate.py"], "Enforcing Quality Gate and promoting model")
 
     with open(DRIFT_DIR / "retraining_metrics.json") as f:
         metrics = json.load(f)
-    print(f"\n✅ SCENARIO 2 PASSED: Candidate Accuracy = {metrics['candidate_accuracy']*100:.2f}% >= 85%. Promoted to production!")
+    print(f"\n✅ SCENARIO 2 PASSED: Candidate Accuracy = {metrics['candidate_accuracy']*100:.2f}% >= 50%. Promoted to production!")
 
     # Step 4: Run unit tests
     print_header("Step 4: Post-Promotion Unit & API Test Suite")

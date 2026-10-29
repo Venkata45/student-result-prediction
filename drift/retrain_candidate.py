@@ -2,7 +2,6 @@ from pathlib import Path
 import json
 import joblib
 import pandas as pd
-from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
@@ -12,7 +11,7 @@ from sklearn.metrics import accuracy_score
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DRIFT_DIR = PROJECT_ROOT / "drift"
-HISTORICAL = PROJECT_ROOT / "student_results.csv"
+HISTORICAL = PROJECT_ROOT / "placement_data.csv"
 RECENT = DRIFT_DIR / "current_labeled_data.csv"
 DRIFT_REPORT = DRIFT_DIR / "drift_report.json"
 CANDIDATE_MODEL = (
@@ -21,12 +20,10 @@ CANDIDATE_MODEL = (
 METRICS_FILE = DRIFT_DIR / "retraining_metrics.json"
 
 FEATURES = [
-    "attendance",
-    "internal_marks",
-    "assignment_marks",
-    "previous_score",
+    "cgpa",
+    "placement_exam_marks",
 ]
-TARGET = "result"
+TARGET = "placed"
 
 with open(DRIFT_REPORT, encoding="utf-8") as f:
     drift_report = json.load(f)
@@ -38,8 +35,7 @@ if not drift_report["overall_drift"]:
 
 if not RECENT.exists():
     raise FileNotFoundError(
-        "Drift was detected, but current_labeled_data.csv "
-        "is not available."
+        "Drift was detected, but current_labeled_data.csv is not available."
     )
 
 historical = pd.read_csv(HISTORICAL)
@@ -72,17 +68,9 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y
 )
 
-numeric_pipeline = Pipeline([
+candidate = Pipeline([
     ("imputer", SimpleImputer(strategy="median")),
     ("scaler", StandardScaler()),
-])
-
-preprocess = ColumnTransformer([
-    ("numeric", numeric_pipeline, FEATURES),
-])
-
-candidate = Pipeline([
-    ("preprocess", preprocess),
     (
         "model",
         LogisticRegression(
@@ -99,6 +87,7 @@ accuracy = accuracy_score(y_test, predictions)
 joblib.dump(candidate, CANDIDATE_MODEL)
 
 metrics = {
+    "dataset": "placement_data.csv",
     "candidate_accuracy": round(float(accuracy), 6),
     "training_rows": int(len(X_train)),
     "test_rows": int(len(X_test)),

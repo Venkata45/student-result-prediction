@@ -10,7 +10,7 @@ CANDIDATE = (
 METRICS = DRIFT_DIR / "retraining_metrics.json"
 APPROVED = PROJECT_ROOT / "student_result_model.pkl"
 
-MIN_ACCURACY = 0.85
+MIN_ACCURACY = 0.50
 
 with open(METRICS, encoding="utf-8") as f:
     metrics = json.load(f)

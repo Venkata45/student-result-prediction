@@ -3,8 +3,10 @@ import sys
 import time
 import uuid
 
+from pathlib import Path
+import json
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import Response, RedirectResponse
+from fastapi.responses import HTMLResponse, Response, RedirectResponse
 from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 import pandas as pd
@@ -158,14 +160,37 @@ class Student(BaseModel):
 
 SAFE_INPUT_FIELDS = {"cgpa", "placement_exam_marks"}
 
+DASHBOARD_FILE = Path(__file__).resolve().parent / "drift" / "drift_dashboard.html"
+DRIFT_REPORT_FILE = Path(__file__).resolve().parent / "drift" / "drift_report.json"
+
+def get_dashboard_html():
+    if DASHBOARD_FILE.exists():
+        return DASHBOARD_FILE.read_text(encoding="utf-8")
+    return "<html><body><h2>Drift Dashboard file not found</h2></body></html>"
+
 # Endpoints
 @app.get("/")
-def root():
+def root(request: Request):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return HTMLResponse(content=get_dashboard_html(), status_code=200)
     return {
         "message": "Student Result Prediction API is running",
-        "version": "1.4.0",
-        "practical": "Practical-14: Automate Kubernetes Deployment using GitHub Actions",
+        "version": "1.5.0",
+        "practical": "Practical-15: Data Drift & Retraining on placement_data.csv",
     }
+
+@app.get("/drift", response_class=HTMLResponse)
+@app.get("/dashboard", response_class=HTMLResponse)
+def drift_dashboard():
+    return HTMLResponse(content=get_dashboard_html(), status_code=200)
+
+@app.get("/api/drift")
+def get_drift_report():
+    if DRIFT_REPORT_FILE.exists():
+        with open(DRIFT_REPORT_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    return {"error": "Drift report not found"}
 
 @app.get("/health")
 def health():
