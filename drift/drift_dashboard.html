@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MLOps Practical-15: Data Drift & Retraining Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #0d1117; color: #c9d1d9; padding: 30px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .header { margin-bottom: 25px; border-bottom: 1px solid #30363d; padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 24px; color: #58a6ff; }
+    .badge-drift { background-color: #da3633; color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+    .badge-pass { background-color: #238636; color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+    .card h3 { font-size: 13px; color: #8b949e; text-transform: uppercase; margin-bottom: 8px; }
+    .card .value { font-size: 26px; font-weight: bold; color: #f0f6fc; }
+    .table-card { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 25px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid #21262d; font-size: 14px; }
+    th { color: #8b949e; font-weight: 600; }
+    .tag-drift { color: #f85149; font-weight: 600; background: rgba(248, 81, 73, 0.1); padding: 4px 8px; border-radius: 6px; }
+    .tag-stable { color: #3fb950; font-weight: 600; background: rgba(63, 185, 80, 0.1); padding: 4px 8px; border-radius: 6px; }
+    .flow-card { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+    .flow-steps { display: flex; justify-content: space-between; margin-top: 15px; position: relative; }
+    .step { text-align: center; flex: 1; padding: 10px; border: 1px solid #30363d; border-radius: 6px; background-color: #0d1117; margin: 0 5px; }
+    .step.active { border-color: #238636; background: rgba(35, 134, 54, 0.1); }
+    .step-title { font-weight: bold; font-size: 14px; color: #58a6ff; margin-bottom: 5px; }
+    .step-desc { font-size: 12px; color: #8b949e; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Student Result Prediction - Data Drift & Retraining</h1>
+        <p style="color: #8b949e; font-size: 13px; margin-top: 4px;">MLOps Practical-15 Automated Decision Dashboard</p>
+      </div>
+      <div>
+        <span class="badge-drift">OVERALL DRIFT: DETECTED</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Statistical Method</h3>
+        <div class="value" style="font-size: 20px; color: #58a6ff;">Two-Sample KS Test</div>
+        <p style="font-size: 12px; color: #8b949e; margin-top: 5px;">p-value threshold = 0.05</p>
+      </div>
+      <div class="card">
+        <h3>Drifted Features</h3>
+        <div class="value" style="color: #f85149;">3 / 4</div>
+        <p style="font-size: 12px; color: #8b949e; margin-top: 5px;">Threshold &ge; 2 features</p>
+      </div>
+      <div class="card">
+        <h3>Candidate Accuracy</h3>
+        <div class="value" style="color: #3fb950;">91.67%</div>
+        <p style="font-size: 12px; color: #8b949e; margin-top: 5px;">Required threshold &ge; 85%</p>
+      </div>
+      <div class="card">
+        <h3>Quality Gate Status</h3>
+        <div class="value" style="color: #3fb950;">PASSED &check;</div>
+        <p style="font-size: 12px; color: #8b949e; margin-top: 5px;">Promoted to Production</p>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <h2 style="font-size: 18px; color: #f0f6fc;">Feature-Level Kolmogorov-Smirnov Statistical Analysis</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Feature Name</th>
+            <th>Reference Mean</th>
+            <th>Current Mean</th>
+            <th>KS Statistic (D)</th>
+            <th>p-value</th>
+            <th>Drift Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>attendance</strong></td>
+            <td>78.84%</td>
+            <td>65.04%</td>
+            <td>0.4220</td>
+            <td>0.0000</td>
+            <td><span class="tag-drift">DRIFT DETECTED</span></td>
+          </tr>
+          <tr>
+            <td><strong>internal_marks</strong></td>
+            <td>34.96</td>
+            <td>26.03</td>
+            <td>0.3440</td>
+            <td>0.0000</td>
+            <td><span class="tag-drift">DRIFT DETECTED</span></td>
+          </tr>
+          <tr>
+            <td><strong>assignment_marks</strong></td>
+            <td>35.14</td>
+            <td>27.19</td>
+            <td>0.3040</td>
+            <td>0.0000</td>
+            <td><span class="tag-drift">DRIFT DETECTED</span></td>
+          </tr>
+          <tr>
+            <td><strong>previous_score</strong></td>
+            <td>70.62</td>
+            <td>66.66</td>
+            <td>0.1460</td>
+            <td>0.0534</td>
+            <td><span class="tag-stable">STABLE</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flow-card">
+      <h2 style="font-size: 18px; color: #f0f6fc; margin-bottom: 10px;">Lifecycle Decision Flow</h2>
+      <div class="flow-steps">
+        <div class="step active">
+          <div class="step-title">1. Drift Check</div>
+          <div class="step-desc">KS Test: 3 features p &lt; 0.05 ➔ Overall Drift Triggered</div>
+        </div>
+        <div class="step active">
+          <div class="step-title">2. Labeled Data</div>
+          <div class="step-desc">Recent batch labeled with ground-truth outcomes</div>
+        </div>
+        <div class="step active">
+          <div class="step-title">3. Retrain Candidate</div>
+          <div class="step-desc">Trained on 480 rows, evaluated on 120 test rows</div>
+        </div>
+        <div class="step active">
+          <div class="step-title">4. Quality Gate</div>
+          <div class="step-desc">Accuracy 91.67% &ge; 85% ➔ PASS</div>
+        </div>
+        <div class="step active">
+          <div class="step-title">5. Promotion</div>
+          <div class="step-desc">Saved to student_result_model.pkl & tested via pytest</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
