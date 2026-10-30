@@ -1,8 +1,0 @@
-{
-  "dataset": "placement_data.csv",
-  "candidate_accuracy": 0.541667,
-  "training_rows": 960,
-  "test_rows": 240,
-  "historical_rows": 1000,
-  "recent_labeled_rows": 200
-}

@@ -7,7 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
 COPY placement_data.csv .
-COPY drift ./drift
 
 EXPOSE 8000
 
