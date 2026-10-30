@@ -1,0 +1,28 @@
+{
+  "dataset": "placement_data.csv",
+  "method": "two-sample KS test",
+  "p_value_threshold": 0.05,
+  "min_drifted_features": 1,
+  "drifted_feature_count": 2,
+  "drifted_features": [
+    "cgpa",
+    "placement_exam_marks"
+  ],
+  "overall_drift": true,
+  "features": {
+    "cgpa": {
+      "ks_statistic": 0.51125,
+      "p_value": 0.0,
+      "drift_detected": true,
+      "reference_mean": 6.9655,
+      "current_mean": 6.1426
+    },
+    "placement_exam_marks": {
+      "ks_statistic": 0.35375,
+      "p_value": 0.0,
+      "drift_detected": true,
+      "reference_mean": 32.7537,
+      "current_mean": 18.6975
+    }
+  }
+}

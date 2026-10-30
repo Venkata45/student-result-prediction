@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Result Prediction: Data Drift & Retraining Dashboard</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-muted: #8b949e;
+      --primary: #58a6ff;
+      --success: #238636;
+      --danger: #da3633;
+      --warning: #d29922;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .header { margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .header h1 { font-size: 22px; color: var(--primary); }
+    .badge { padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; display: inline-block; }
+    .badge-drift { background-color: var(--danger); color: #fff; }
+    .badge-pass { background-color: var(--success); color: #fff; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+    .card h3 { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .card .value { font-size: 24px; font-weight: 700; color: #f0f6fc; }
+    .subtext { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; text-align: left; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid #21262d; font-size: 14px; }
+    th { color: var(--text-muted); font-weight: 600; }
+    .tag-drift { color: #f85149; font-weight: 600; background: rgba(248, 81, 73, 0.12); padding: 4px 8px; border-radius: 6px; }
+    .tag-stable { color: #3fb950; font-weight: 600; background: rgba(63, 185, 80, 0.12); padding: 4px 8px; border-radius: 6px; }
+    .btn { background-color: var(--success); color: #fff; border: 1px solid rgba(240,246,252,0.1); padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
+    .btn:hover { background-color: #2ea043; }
+    .input-group { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+    .input-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+    .input-field label { font-size: 12px; color: var(--text-muted); }
+    .input-field input { background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; color: #fff; font-size: 14px; }
+    .nav-links { display: flex; gap: 10px; margin-top: 10px; }
+    .nav-link { color: var(--primary); text-decoration: none; font-size: 13px; }
+    .nav-link:hover { text-decoration: underline; }
+    .flow-steps { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; flex-wrap: wrap; }
+    .step { text-align: center; flex: 1; min-width: 160px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background-color: #0d1117; }
+    .step.active { border-color: var(--success); background: rgba(35, 134, 54, 0.12); }
+    .step-title { font-weight: bold; font-size: 13px; color: var(--primary); margin-bottom: 4px; }
+    .step-desc { font-size: 11px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Student Result Prediction &mdash; Live Monitoring Dashboard</h1>
+        <p class="subtext">MLOps Practical-15 &bull; Real-Time Data Drift, Quality Gate, and Prediction Service (Dataset: placement_data.csv)</p>
+      </div>
+      <div>
+        <span class="badge badge-drift" id="overall-badge">OVERALL DRIFT: DETECTED</span>
+      </div>
+    </div>
+
+    <!-- Live Prediction Form Card -->
+    <div class="card" style="margin-bottom: 24px;">
+      <h3>Interactive Model Prediction (Own Dataset Schema)</h3>
+      <div class="input-group">
+        <div class="input-field">
+          <label>Cumulative GPA (cgpa: 0 &ndash; 10)</label>
+          <input type="number" id="input-cgpa" value="7.19" step="0.01" min="0" max="10">
+        </div>
+        <div class="input-field">
+          <label>Placement Exam Marks (0 &ndash; 100)</label>
+          <input type="number" id="input-marks" value="26.0" step="0.5" min="0" max="100">
+        </div>
+        <div style="align-self: flex-end;">
+          <button class="btn" onclick="makePrediction()">Predict Placement</button>
+        </div>
+      </div>
+      <div id="prediction-result" style="margin-top: 14px; padding: 12px; border-radius: 6px; background: #0d1117; display: none; border: 1px solid var(--border);">
+        <span id="pred-badge" class="badge" style="margin-right: 12px;"></span>
+        <span id="pred-text" style="font-size: 14px;"></span>
+      </div>
+    </div>
+
+    <!-- Summary Metrics Grid -->
+    <div class="grid">
+      <div class="card">
+        <h3>Dataset Analyzed</h3>
+        <div class="value" style="font-size: 18px; color: var(--primary);">placement_data.csv</div>
+        <p class="subtext">Historical: 1,000 | Recent: 200 rows</p>
+      </div>
+      <div class="card">
+        <h3>Statistical Method</h3>
+        <div class="value" style="font-size: 18px; color: var(--primary);">Two-Sample KS Test</div>
+        <p class="subtext">Threshold: &alpha; = 0.05</p>
+      </div>
+      <div class="card">
+        <h3>Candidate Accuracy</h3>
+        <div class="value" style="color: #3fb950;" id="cand-acc">54.17%</div>
+        <p class="subtext">Quality Gate (&ge; 50.0%): <strong style="color: #3fb950;">PASSED</strong></p>
+      </div>
+      <div class="card">
+        <h3>Model Lifecycle</h3>
+        <div class="value" style="font-size: 18px; color: #3fb950;">PROMOTED</div>
+        <p class="subtext">student_result_model.pkl</p>
+      </div>
+    </div>
+
+    <!-- Data Drift Statistics Table -->
+    <div class="card" style="margin-bottom: 24px;">
+      <h3>Two-Sample Kolmogorov-Smirnov Test Results</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Reference Mean</th>
+            <th>Current Mean</th>
+            <th>Shift (&Delta;)</th>
+            <th>KS Statistic (D)</th>
+            <th>p-value</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="drift-table-body">
+          <tr>
+            <td><strong>cgpa</strong></td>
+            <td>6.9655</td>
+            <td>6.1426</td>
+            <td style="color: #f85149;">-11.8%</td>
+            <td>0.5113</td>
+            <td>&lt; 10<sup>-30</sup></td>
+            <td><span class="tag-drift">DRIFT DETECTED</span></td>
+          </tr>
+          <tr>
+            <td><strong>placement_exam_marks</strong></td>
+            <td>32.7537</td>
+            <td>18.6975</td>
+            <td style="color: #f85149;">-42.9%</td>
+            <td>0.3538</td>
+            <td>&lt; 10<sup>-15</sup></td>
+            <td><span class="tag-drift">DRIFT DETECTED</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Automated Retraining Workflow Steps -->
+    <div class="card" style="margin-bottom: 24px;">
+      <h3>Automated Continuous Retraining Flow</h3>
+      <div class="flow-steps">
+        <div class="step active">
+          <div class="step-title">1. Reference Baseline</div>
+          <div class="step-desc">Extracted 800 historical records from placement_data.csv</div>
+        </div>
+        <div class="step active">
+          <div class="step-title">2. Drift Detection</div>
+          <div class="step-desc">KS Test flagged 2/2 features with p &lt; 0.05</div>
+        </div>
+        <div class="step active">
+          <div class="step-title">3. Candidate Retraining</div>
+          <div class="step-desc">Retrained LogisticRegression pipeline on 1,200 rows</div>
+        </div>
+        <div class="step active">
+          <div class="step-title">4. Quality Gate</div>
+          <div class="step-desc">Candidate Accuracy (54.17%) &ge; Threshold (50.0%)</div>
+        </div>
+        <div class="step active">
+          <div class="step-title">5. Production Promotion</div>
+          <div class="step-desc">Candidate promoted to student_result_model.pkl</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="card">
+      <h3>Quick Service Links</h3>
+      <div class="nav-links">
+        <a class="nav-link" href="/docs" target="_blank">&rarr; Swagger Interactive Docs (/docs)</a>
+        <a class="nav-link" href="/metrics" target="_blank">&rarr; Prometheus Metrics (/metrics)</a>
+        <a class="nav-link" href="/health" target="_blank">&rarr; Health Check (/health)</a>
+        <a class="nav-link" href="/api/drift" target="_blank">&rarr; Raw Drift Report JSON (/api/drift)</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function makePrediction() {
+      const cgpa = parseFloat(document.getElementById('input-cgpa').value);
+      const marks = parseFloat(document.getElementById('input-marks').value);
+      const resDiv = document.getElementById('prediction-result');
+      const badge = document.getElementById('pred-badge');
+      const text = document.getElementById('pred-text');
+      
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cgpa: cgpa, placement_exam_marks: marks })
+        });
+        const data = await response.json();
+        resDiv.style.display = 'block';
+        if (data.placed === 1) {
+          badge.className = 'badge badge-pass';
+          badge.textContent = 'PLACED';
+        } else {
+          badge.className = 'badge badge-drift';
+          badge.textContent = 'NOT PLACED';
+        }
+        text.innerHTML = `<strong>Placement Probability:</strong> ${(data.placement_probability * 100).toFixed(1)}% &bull; <strong>CGPA:</strong> ${cgpa} &bull; <strong>Marks:</strong> ${marks}`;
+      } catch (err) {
+        resDiv.style.display = 'block';
+        badge.className = 'badge badge-drift';
+        badge.textContent = 'ERROR';
+        text.textContent = 'Prediction failed: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
